@@ -1,0 +1,173 @@
+Maven
+-------
+
+what is maven?
+
+Maven is an open source, Java Based Build tool..
+
+What is the popular build tools:
+-----------------------------------
+
+Java - Ant/Maven/Gradel
+.net - Nant/ms build
+python - py builder
+ruby - rake
+
+why we use maven?
+----------------
+
+Ant : Ant is older
+Gradel : latest one...
+
+We have to Create a Packages  
+
+what type of packages we can create using maven???
+-------------------------------------------------
+
+jar war ear
+
+* the packages may be jar/war/ear based on the project type...
+
+--------------------------------------------------------------
+
+Using java as the developers we can deploy 3 types of projects
+  
+standalone
+web
+enterprise application...
+
+----------------------------------
+
+Standalone application: it contain java code only...
+web application:  it containes java code + web content(Html,css js, bootstrap)
+enterprise : it containes n. no of web contents + java code  
+                
+--------------------------------------------------------------------
+
+
+pre-req:
+--------------
+
+java1.8 or 8
+maven latest
+
+----------------------------------------------------------------------
+directory structure
+
+bin: binary files  (mvn)
+conf: configuration files (setting.xml)
+lib
+boot
+-----------------------------------------------------------------------------------------
+
+deafult build script for maven - pom.xml (project object model) developers can write 
+                         ant  -  build.xml
+                         gradel - build.gradel
+-------------------------------------------------------------------------------
+3 Repositories
+---------------
+
+Maven Local Repo
+Maven Central repo
+maven Remote repo
+
+
+maven local repo
+-----------------
+The maven local repository is a local folder that is used to store all your project's dependencies (plugin jars and other files which are downloaded by Maven). 
+In simple, when you build a Maven project, all dependency files will be stored in your Maven local repository.
+
+By default, Maven local repository is default to .m2 folder:
+
+1) Mac OS X - ~/.m2 (/Users/mithun/.m2/repository)
+
+2) Windows - C:\Users\mithun\.m2\repository
+
+3) Linux/Unix - .m2/repository
+
+
+maven central repo
+-------------------
+The central repository is the repository provided by the Maven community. 
+It contains a large repository of commonly used libraries. 
+This repository comes into play when Maven does not find libraries in the local repository
+
+* when the dependencies are not available in local repo. it is going to download from central repo..
+it will download and store into local repo....
+
+** maven remote repo
+   ------------------
+Enterprises usually maintain their own repositories for the libraries that are being used for the project.
+These differ from the local repository; 
+a repository is maintained on a separate server, different from the developer's machine and is accessible within the organization.
+
+
+
+
+------------------------------------------------------------------------------
+maven life cycle
+
+-------------------------------------------------
+life cycles                             goals
+
+clean                                  Clean : It will delete the previous build file
+
+site                                   site  : It will generate the document
+
+default                                
+
+    Validate: It will validate the project structru and resourece files...
+    compile:  It is going to compile all java classes and junit test classes also...
+                      Java - Junit test
+                      .net - Nunit
+    test :    It will run the junit test cases
+    package:  it will create a paackage
+    install:  It will store the packages into maven local repo  
+    deploy:   It will store the packages into maven remote repo....
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
