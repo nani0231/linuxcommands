@@ -1,0 +1,14 @@
+node{
+def mavenHome = tool name: "maven2.2.2"
+   stage ('checkoutcode'){
+       git 'https://github.com/nani0231/maven-web-application.git'
+   } 
+   stage ('Build'){
+      sh "${mavenHome}/bin/mvn clean package"
+   }
+   stage('Deploytowar'){
+       sshagent(['ccc43d21-78fc-440a-bac5-59c8a2ba03d4']) {
+      sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@15.207.54.159:/opt/apache-tomcat-9.0.87/webapps/"
+  }
+   }
+}
