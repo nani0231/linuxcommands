@@ -83,7 +83,7 @@ sudo systemctl restart apache2
 ...........................................
 
 Create a user and set the password when prompted.
-sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users admin
+sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 
 ...................................................................
 
