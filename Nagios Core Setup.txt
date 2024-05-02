@@ -128,7 +128,7 @@ Verify the Nagios Core configuration.
 
 .....................................................
 
-$ sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 
 ......................................
 
