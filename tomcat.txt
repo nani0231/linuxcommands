@@ -1,0 +1,66 @@
+Tomcat
+-------
+what is tomcat?
+ 
+tomcat is an opensource,java based,web appliation server...
+
+web application servers
+-----------------------
+tomcat     Vendor (Apache)
+
+Jboss/wildfly    (redhat)
+  Jboss (1.x ---  7.x)
+  wildfly (8.x --- till)
+
+WAS               (ibm)
+weblogic          (Oracle)
+
+--------------------------------------
+Tomcat is going to support only java applications..
+
+deploy only .war files....
+
+.ear---files deploy it in jboss/was/weblogic....
+
+** in the jboss/wildfly supports both .war and .ear files....
+
+----------------------------------------------------------------------
+
+tomcat Directory Structure
+---------------------------
+
+bin :  Binary files (to start/stop a tomcat server)
+
+      startup.sh
+      shutdown.sh
+      
+conf: server.xml and setting.xml
+lib : library files
+logs: What is the errors
+webapps: It is going store in webapps...
+work: some files are store in work dir..
+temp: Temorary files....
+
+
+------------------------------------------------------------------
+pre-req:
+
+java
+git 
+maven
+tomcat
+
+
+-----------------------------------
+
+
+----------------------------------------------------------
+
+port change
+-----------
+
+under conf dir
+open the server.xml
+under server.xml change the connector port (8080 replace) and sava and quit.
+again stop and start the tomcat server.
+
