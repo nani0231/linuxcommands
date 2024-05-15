@@ -1,0 +1,186 @@
+
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+Run command options 
+
+-it 	for opening an interactive terminal in a container 
+
+
+--name 	Used for giving a name to a container 
+
+-d 	Used for running the container in detached mode as a background process 
+
+-e 	Used for passing environment varaibles to the container 
+
+
+
+-p 	Used for port mapping between port of container with the dockerhost port.
+
+ 
+-P 	Used for automatic port mapping ie, it will map the internal port of the container 
+                with some port on host machine. 
+               This host port will be some number greater than 30000 
+
+-v 	Used for attaching a volume to the container 
+
+--volume-from 	 Used for sharing volume between containers 
+
+--network 	Used to run the contianer on a specific network 
+--link 		Used for linking the container for creating a multi container architecture 
+
+--memory  	Used to specify the maximum amount of ram that the container can use 
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++=
+
+
+# docker images   ( There are no images )
+
+
+
+
+
+To download tomcat image
+
+# docker pull tomee
+
+
+# docker images		
+
+# docker pull ubuntu
+
+If you do not specify the version, by default, we get latest version
+
+I want to download jenkins
+
+# docker pull jenkins/jenkins
+
+
+
+TO create a container from an image
+
+
+#  docker run       --name c1      -p        7070:8080              tomee
+
+
+#  docker run         --name   c1   -p    7070:8080   tomee
+
+
+
+
+
+
+TO check the tomcat is running or not
+http://35.154.212.55:7070
+
+( 7070 is port number mapped in docker host)
+
+Lets remove the container  ( Open another gitbash terminal)
+
+# docker stop  c1
+
+
+# docker rm -f c1
+
+# docker run --name   mytomcat  -p 7070:8080     -d      tomee
+
+
+
+( The above command  runs tomcat in detached mode , so we get out # prompt back )
+ 
+# docker container ls
+
+TO start jenkins
+#  docker run --name myjenkins       -p 9090:8080         -d       jenkins/jenkins
+
+
+
+
+To check for jenkins ( Open browser )
+ http://65.2.127.233:9090
+
+To create ubuntu container
+
+#  docker run --name myubuntu  -it    ubuntu
+
+
+
+
+
+Observation:  You have automatically entered into ubuntu
+# ls  ( To see the list of files in ubuntu )
+# exit  ( To comeout of container back to host )
+
+
++++++++++++++
+
+
+Scenario 1:
+Start tomcat as a container and name it as "webserver". Perform port mapping and run this container in detached mode
+
+# docker run --name  webserver  -p 7070:8080  -d tomee
+
+To access homepage of the tomcat container
+Launch any browser
+public_ip_of_dockerhost:7070
+
+++++++++++++++++++++++++++++++++
+
+
+
+
+
+Scenario 2:
+Start jenkins as a container in detached mode , name is as "devserver", perform port mapping
+
+# docker run -d  --name  devserver  -p 9090:8080 jenkins/jenkins
+
+To access home page of jenkins ( In browser)
+public_ip_of_dockerhost:9090
+
+++++++++++++++++++++++++++++++++++++++++
+
+Scenario 3:  Start nginx as a container and name as "appserver", run this in detached mode ,   perform automatic port mapping 
+
+Generally we pull the image and run the image
+
+Instead of pulling, i directly   
+
+# docker run --name  appserver  -P  -d  nginx 
+
+
+
+( if image is not available, it perform pull operation automatically )
+( Capital P  , will perform automatic port mapping )
+
+
+
+How to check nginx is running or not? ( we do not know the port number)
+
+To know the port that is reserved for nginx )
+# docker port  appserver
+80/tcp -> 0.0.0.0:32768
+
+80  is nginx port
+32768  is  dockerhost port
+
+or
+
+#  docker container ls    ( to see the port of nginz and docker host )
+
+To check nginx on browser
+13.126.59.69:49153
+
+
+
+++++++++++++++++++++++++++
+To start centos as container
+
+# docker run --name mycentos  -it  centos
+#  exit  ( To come back to dockerhost )
+
+++++++++++++++
+
