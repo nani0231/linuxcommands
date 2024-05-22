@@ -1,0 +1,210 @@
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Docker volumes
+------------------
+Docker containers are  ephemeral ( temporary )
+Where as the data processed by the container should be permanent.
+
+Generally, when a container is deleted all its data will be lost.
+To preserve the data, even after deleting the container, we use volumes.
+
+Volumes are of two types
+1) Simple docker volumes
+2) Docker volume containers ( Sharable volume )
+
+Simple docker volumes
+-----------------------------
+These volumes are used only when we want to access the data, 
+even after the container is deleted. 
+But this data cannot be shared with other containers.
+
+
+
+usecase
+------------
+1) Create a directory called /data ,  
+start centos as container and mount /data as volume. (instructs the operating system to attach a file system at a specified directory)
+Create files in mounted volume in centos container,
+exit from the container and delete the container. Check if the files are still available.
+
+
+
+
+Lets create a folder  with the name  
+# mkdir  /data
+
+# docker run --name c1 -it -v /data centos  ( v option is used to attach volume)
+
+
+
+
+
+# ls  ( Now, we can see the data folder also in the container)
+
+# cd data
+# touch file1   file2 
+# ls
+# exit  ( To come out of the container )
+# docker inspect c1
+
+We can see under mounts "data" folder it located in the host machine.
+Copy the path
+/var/lib/docker/volumes/17ad62b52cf7ca8bc8b3ce217bbfa8ee45b680cce149ec00e030c6cbb952ba9a/_data
+
+/var/lib/docker/volumes/c5c85f87fdc3b46b57bb15f2473786fe7d49250227d1e9dc537bc594db001fc6/_data
+
+Now, lets delete te container
+# docker rm -f c1
+
+After deleting the container, lets go to the location of the data folder
+
+# cd /var/lib/docker/volumes/d867766f70722eaf8cba651bc1d64c60e9f49c5b1f1ebb9e781260f777f3c7e8/_data
+
+# ls  ( we can see file1  file2 )
+
+( Observe , the container is deleted but still  the data is persistant )
+
+
+
+
++++++++++++++
+
+docker volume containers
+-------------------------------
+These are also known as reusable volume.
+The volume used by one container can be shared with other containers.
+Even if all the containers are deleted, data will still be available on the docker host.
+
+Ex:
+
+# sudo su -
+
+Lets create a directory      /data
+# mkdir  /data 
+
+Lets Start  centos as container 
+#  docker run --name  c1  -it  -v /data ubuntu 
+# ls  ( we can see the list of files and dir in centos )
+
+
+# cd data
+# ls  ( currently we have no files )
+
+Lets create  some files
+# touch file1  file2  ( These two files are available in c1 container)
+
+Comeout of the container without exit
+# Ctrl +p +q  ( container will still runs in background )
+
+
+Lets Start another  centos as container ( c2 container should use the same volume as c1)
+#  docker run --name  c2  -it  --volumes-from c1  ubuntu 
+
+
+
+# cd data
+# ls  ( we can see the files created by c1 )
+
+Lets create some more files
+# touch file3  file4
+# ls  ( we see 4 files )
+
+Comeout of the container without exit
+# Ctrl +p  Ctrl +q  ( container will still runs in background )
+
+Lets Start another  centos as container
+#  docker run --name  c3  -it  --volumes-from c2 centos 
+
+
+
+# cd data
+# ls  ( we can see 4 files )
+# touch file5  file6
+# ls
+
+Comeout of the container without exit
+# Ctrl +p  Ctrl +q  ( container will still runs in background )
+
+Now, lets connect to any container which is running in the background
+# docker attach  c1
+#  ls  ( you can see all the files )
+# exit
+
+Identify the mount location
+$ docker inspect  c1
+( search for the mount section )
+
+Take a note of the source path
+
+/var/lib/docker/volumes/e22a9b39372615727b964151b6c8108d6c02b13114a3fcce255df0cee7609e15/_data
+
+
+
+Lets remove all the container
+# docker rm -f  c1  c2  c3
+
+Lets go to the source path
+
+# cd /var/lib/docker/volumes/e22a9b39372615727b964151b6c8108d6c02b13114a3fcce255df0cee7609e15/_data
+
+
+# ls  ( we can see all the files )
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Creating customized docker images
+----------------------------------------
+
+Whenever docker container is deleted, 
+all the softwares that we have installed within the container will also be deleted.
+
+
+
+If we can save the container as an image, then we can preserve the softwares.
+
+
+This creation of customized docker images can be done in two ways.
+
+1) using docker commit command
+2) using docker file
+
+
+
+
+Using docker commit
+----------------------
+
+# docker run  --name c11 -it  ubuntu
+
+
+Update apt repository
+
+# apt-get update
+# apt-get install git
+ 
+TO check the git
+# git  --version
+# exit
+
+TO save the container as image (snapshot )
+# docker commit   c11   myubuntu
+
+To see the list of images
+# docker images  ( you can see the image which you have created )
+
+++++++++++++++++++++++
+Now lets run the image which we have created
+# docker run --name c22 -it   myubuntu
+
+
+# git --version  ( git is pre installed )
+
++++++++++++++++++++++++++++++++++++++++++++++++++
