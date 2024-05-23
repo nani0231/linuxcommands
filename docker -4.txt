@@ -1,0 +1,359 @@
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
+Ex 3:  Create LAMP  Architecture using docker
+
+L -- linux
+A -- apache tomcat
+M -- mysql
+P --  php
+
+( Linux os we already have )
+
+
+
+
+Lets remove all the docker containers
+# docker rm  -f  $(docker ps -aq)
+
+# docker container ls  (  we have no containers now )
+
+1)  TO start mysql as container
+# docker run --name mydb  -d  -e  MYSQL_ROOT_PASSWORD=sunil  mysql:5
+
+
+2)  TO start tomcat as container
+# docker run  --name  apache  -d  -p 6060:8080  --link mydb:mysql  tomee
+
+
+
+
+TO see the list of containers
+# docker container ls
+
+To check if tomcat is linked with mysql
+# docker inspect apache      ( apache is the name of the container )
+
+
+3)  TO start php as container
+# docker  run --name php  -d --link apache:tomcat  --link mydb:mysql    php
+
+
+++++++++++++++++++++
+
+
+
+++++++++++++++++++++
+Ex 4:
+Create CI-CD environment, where jenkins container is linked with two tomcat containers.
+
+
+Lets delete all the container
+# docker rm  -f  $(docker ps -aq)
+
+To start jenkins as a container
+# docker run  --name  devserver  -d -p 7070:8080 jenkins/jenkins
+
+
+to check jenkins is running or not?
+Open browser
+public_ip:7070
+http://18.138.58.3:7070
+
+We need two tomcat containers  ( qa server and prod server )
+# docker run --name  qaserver  -d  -p 8080:8080 --link devserver:jenkins tomee
+
+
+to check the tomcat   use public_ip but port number will be 8080
+http://18.138.58.3:8080
+
+
+
+
+
+
+# docker run --name  prodserver  -d  -p 9090:8080 --link devserver:jenkins tomee
+to check the tomcat of prodserver
+http://18.138.58.3:9090
+
++++++++++++++++++++++++++++++
+
+
+
+
+Creating testing environment using docker
+
+
+
+Create selenium hub container, and link it with two node containers.
+One node with firefox installed, another node with chrome installed.
+
+Tester should be able to run selenuim automation programs for testing the application on multiple browsers.
+
+
+To delete all the running containers
+# docker rm  -f  $(docker ps -aq)
+
+		
+In Browser  --  open - hub.docker.com
+
+Search for selenium
+We have a image -  selenium/hub
+
+To start selenium/hub as container
+# docker run --name  hub  -d -p 4444:4444   selenium/hub
+
+
+In hub.docker.com
+we also have-  selenium/node-chrome-debug    ( It is ubuntu container with chrome)
+
+To start it as a container and link to hub ( previous container)
+# docker run --name chrome  -d -p 5901:5900  --link hub:selenium   selenium/node-chrome-debug
+
+In hub.docker.com
+we also have-  selenium/node-firefox-debug
+
+To start it as a container and link to hub ( It is ubuntu container with firefox)
+# docker run --name firefox  -d -p 5902:5900  --link hub:selenium   selenium/node-firefox-debug
+
+To see the list of container
+# docker container ls
+
+Note: firefox and chrome containers are GUI containers.
+To see the GUI interface to chrome / firefox container
+-------------------------------------------------
+Download and install vnc viewer
+In VNC viewer search bar
+public_ip_dockerhost:5901
+
+18.136.211.65:5901
+Password - secret
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+All the commands we learnt till date are adhoc commands.
+
+In the previous usecase we have installed two containers..
+Lets say you need 80 containers?
+Do we need to run 80 commands?
+ 
+Instead of 80 commands, we can use docker compose
+
+++++++++++++++++++++++++
+
+
+Docker compose
+* This is a feature of docker using which we can create multicontainer architecture using yaml files. 
+* This yaml file contains information about the  containers that we want to launch and how they have to be linked with each other.
+* Yaml is a file format. 
+* It is not a scripting language.
+Yaml will store the data in key value pairs
+Lefthand side - Key
+Righthand side - Value
+Yaml file is space indented.
+
+
+
+
+Sample Yaml file
+
+---
+logiclabs:
+ trainers:
+  sunil: Devops
+  raj: Python
+ Coordinators:
+  lakshmi: Devops
+  rani: AWS
+...
+
+
+
+
+
+++++++++++++++++++++++
+logiclabs -- root  element
++++++++++++++++++++++++++
+
+To validate the abvove Yaml file
+Open  http://www.yamllint.com/
+Paste the above code  -- Go button
+
+++++++++++++++++++++++++++
+
+Installing Docker compose
+-----------------------
+1) Open https://docs.docker.com/compose/install/
+2) Go to linux section
+   Copy and pase the below two commands
+
+#    sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# sudo chmod +x /usr/local/bin/docker-compose
+	
+How to check docker compose is installed or not?
+
+# docker-compose  --version
+
++++++++++++++++++++++++++
+
++++++++++++++++++++++++++
+
+
+
+
+
+Lets remove all the running container
+# docker rm -f $(docker ps -aq)
+
+To stop the containers
+# docker-compose stop
+
+
+We got lot of logs coming on the screen. to avoid it we use -d  option  
+
+
+
+Create a docker compose file for setting up LAMP architecture 
+
+
+
+# vim docker-compose.yml
+
+---
+
+
+services:
+ mydb:
+  image: mysql:5
+  environment:
+   MYSQL_ROOT_PASSWORD: abcabc
+
+ apache:
+  image: httpd
+  ports:
+   - 6060:80
+  links:
+   - mydb:mysql
+
+
+ php:
+  image: php:7.2-apache
+  links:
+   - mydb:mysql
+   - apache:httpd
+...
+
+
+:wq
+
+# docker-compose up -d
+
+To see the list of the containers
+# docker container ls
+( Observation - we are unable to see the php container)
+
+# docker ps -a
+
+++++++++++++++++++++++++++++++++++++
+Ex: Docker-compose file for setting up CI-CD Environment.
+jenkins container is linked with two tomcat containers 
+
+
+# vim docker-compose.yml
+
+---
+
+services:
+ devserver:
+  image: jenkins/jenkins
+  ports:
+   - 8080:8080
+
+ qaserver:
+  image: tomee
+  ports:
+   - 8899:8080
+  links:
+   - devserver:jenkins
+
+
+ prodserver:
+  image: tomee
+  ports:
+   - 9090:8080
+  links:
+   - devserver:jenkins
+...
+
+
+:wq
+
+# docker rm -f $(docker ps -aq)
+# docker-compose up -d
+
+# docker container ls
+
+To check
+public_ip:7070  ( To check jenkins )
+public_ip:8899 ( Tomcat  qa server )
+public_ip:9090 ( Tomcat  prod server )
+
+13.126.58.183:7070
+13.126.58.183:8899
+13.126.58.183:9090
++++++++++++++++++++++
+
+
+
+
+Docker-compose file to set up testing environment.
+selenium  hub container is linked with two node containers.
+
+
+
+# vim docker-compose.yml
+
+---
+version: '3'
+services:
+ hub:
+  image: selenium/hub
+  ports:
+   - 4444:4444
+
+ chrome:
+  image: selenium/node-chrome-debug
+  ports:
+   - 5901:5900
+  links:
+   - hub:selenium
+
+ firefox:
+  image: selenium/node-firefox-debug
+  ports:
+   - 5902:5900
+  links:
+   - hub:selenium
+...
+
+:wq
+
+Lets delete all the running containers
+
+# docker rm -f $(docker ps -aq)
+# docker-compose up -d
+
+# docker container ls
+
+As it is GUI container, 
+we can access using VNC viewer
+
+Open VNC viewer
+52.77.219.115:5901
+password: secret
+
+
+++++++++++++++++++++++++++++++++++++++++++++++

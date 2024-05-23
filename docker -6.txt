@@ -1,0 +1,190 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Creating customized docker images
+----------------------------------------
+
+Whenever docker container is deleted, 
+all the softwares that we have installed within the container will also be deleted.
+
+
+
+If we can save the container as an image, then we can preserve the softwares.
+
+
+This creation of customized docker images can be done in two ways.
+
+1) using docker commit command
+2) using docker file
+
+
+
+
+Using docker commit
+----------------------
+
+# docker run  --name c11 -it  ubuntu
+
+
+Update apt repository
+
+# apt-get update
+# apt-get install git
+ 
+TO check the git
+# git  --version
+# exit
+
+TO save the container as image (snapshot )
+# docker commit   c11   myubuntu
+
+To see the list of images
+# docker images  ( you can see the image which you have created )
+
+++++++++++++++++++++++
+Now lets run the image which we have created
+# docker run --name c22 -it   myubuntu
+
+
+# git --version  ( git is pre installed )
+
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Using docker file
+--------------------
+This is a simple text file, which uses  predefinied keywords for creating customized docker images.
+
+Key words used in docker file  ( case sensitive )
+
+1) FROM  --  used to specify the base image from which the docker file has to be created.
+
+2) MAINTAINER -- This represents name of the organization or the
+                 author who created this docker file.
+
+3) CMD   -- This is used to specify the initial command that should be executed when the container starts.
+
+4) ENTRYPOINT - used to specify the default process that should be executed when container starts.
+                It can also be used for accepting arguments from the CMD instruction.
+
+5) RUN  -- Used for running linux commands within the container. It is generally helpful for installing the software in the container.
+
+6) USER  --      used to specify the default user who should login into the container.
+
+7) WORKDIR --  Used to specify default working directory in the container..
+
+8) COPY  --  Copying the files from the host machine to the container.
+
+9) ADD  -- Used for copying files  from host to container, it can also be used for downloading files from remote servers.
+
+10) ENV  --  used for specifying the environment variables that should be passed to the container.
+
+EXPOSE -- Used to specify the internal port of the container
+VOLUME  --  used to specify the default volume that should be attached to the container.
+LABEL  --  used for giving label to the container
+STOPSIGNAL  -- Used to specify the key sequences that have to be passed in order to stop the container.
+
++++++++++++++++++++++
+
++++++++++++++++++++++++++++++++++
+
+Create a dockerfile by taking nginx as the base image 
+and specify the maintainer as logiclabs. Construct an image from the dockerfile.
+
+Creating customized docker images by using docker file.
+
+$ sudo su -
+# vim dockerfile
+
+FROM nginx
+MAINTAINER abcd
+
+:wq
+
+
+
+TO build an image from the dockerfile
+# docker build -t  mynginx . 
+
+ ( t    stands for tag, 
+    .   stands for current working dir
+  mynginx is the new image name    )
+
+
+
+
+TO see the image
+# docker images
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+When ever i start my container, i want a program to get executed.
+
+# vim dockerfile
+
+FROM centos
+MAINTAINER logiclabs
+CMD ["date"]
+
+:wq
+
+TO build an image from the dockerfile
+# docker build -t  mycentos  . 
+
+TO see the image
+# docker images
+
+Running conainer from the image
+# docker run -it   mycentos
+
+
+++++++++++++++++++++++++++
+
+In one docker file, we can have one CMD instruction.
+If we give two  CMD instruction, it executes the latest one
+Lets try
+
+
+
+# vim dockerfile
+FROM centos
+MAINTAINER logiclabs
+CMD ["date"]
+CMD ["ls", "-la"]
+
+:wq
+
+# docker build -t  mycentos . 
+
+# docker run -it   mycentos
+( Observation, we get ls -la output )
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
+In ubuntu container, I want to install git in it.
+
+
+Lets remove the docker file
+# rm dockerfile
+#  vim dockerfile
+
+FROM ubuntu
+MAINTAINER logiclabs
+RUN apt-get update
+RUN apt-get install -y git
+
+:wq
+
+
+Note:  CMD  -- will run  when container starts.
+       RUN  --  will executed when image is created.
+
+
+# docker build -t  myubuntu . 
+
+Lets see the images list and space consumed by  our  image
+# docker images
+
+# docker run -it   myubuntu
+# git  --version
+# exit
+----------------------------------------------------------------------
