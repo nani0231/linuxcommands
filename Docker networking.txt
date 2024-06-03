@@ -1,0 +1,524 @@
+
+
+
+#    curl -fsSL https://get.docker.com -o get-docker.sh
+#    sh get-docker.sh
+
+--------------------------------
+
+docker run -d -P nginx
+
+
+docker ps
+( we can see nginx container running )
+Take note of container id and inspect the container
+
+docker inspect  d552c14767d4
+
+
+Note: we can see the IP address
+   "IPAddress": "172.17.0.2",
+
+Note: Every container will have IP address
+
+
+Lets take note of docker host IP address - Internal IP -  ( from aws console )
+172.31.7.87
+
+Do you think, they both are the same?
+NO
+How conatiner get IP address?
+
+Note: When we install docker, docker installs a network by default in the host machine called docker0.
+Docker0 network comes with default series   -  172.x.x.x
+Lets check docker0 network.
+
+# ip a     ( we get all networks in the machine )
+
+Observation: we get docker0 also.
+Observe the series -  172.17.0.1
+Container IP address are taken from docker0 network.
+
++++++++++++++++++++++++++++++
+
+
+Lets create another container
+
+#  docker run -d -P redis
+# docker ps   ( we can see two containers are running )
+
+Take note of redis container id
+a780f294a2c5
+
+#  docker inspect a780f294a2c5
+
+
+It takes the next ip address from same series
+
+ "IPAddress": "172.17.0.3",
+
+++++++++++++++++++++++++
+Now, can these two container communicate with each other?
+To check whether containers can communicate with each other or not
+Lest create busybox container, as it containes ping utility.
+
+# docker run -d  --name tester1  busybox:1.28 
+
+# docker ps  ( we can see 3 container running )
+
+I want to check, if the containers are connected are not?
+
+Take note of container id of busybox
+7216021a4778  -- container id of busybox
+
+a780f294a2c5  -- container id of redis
+
+
+# docker exec 7216021a4778 ping a780f294a2c5
+
+
+
+
+
+Is it pinging?  
+No
+
+So, with docker0 network  we cannot ping with container ids
+
+
+
+
+Lets try to ping with container name
+-------------------------------------------
+
+Take note of container name of redis
+hopeful_greider
+
+# docker exec 7216021a4778 ping hopeful_greider
+
+
+
+Is it pinging?  
+No
+
+So, with docker0 network  we cannot ping with container name
+
+Lets try to ping with IP address
+----------------------------------------
+
+Take note of container IP of redis
+# docker exec 7216021a4778 ping 172.17.0.2   (  172.17.0.2   -- ip address of nginx )
+
+# docker exec 7216021a4778 ping 172.17.0.3   (  172.17.0.3   -- ip address of redis )
+
+Yes!!! it works.
+
+So, By using docker0 network, one container can communicate to another container by using IP address.
+
+
+++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+
+Assume, you have two containers
+1st one is application container
+2nd one is db container
+
+I want to communicate from application container with DB container.
+Generally Application container will have the code to connect to DB 
+like jdbc:odbc:dbname:dbport/schema/
+
+When both the containers are running on docker0 network.
+Instead of dbname , we should mention IP address
+like jdbc:odbc:IP:dbport/schema/
+
+
+Now, Is IP address of container is permanent?
+NO
+When conainer acquires new IP, we have connection issues.
+So,
+jdbc:odbc:IP:dbport/schema/  --  is not valid
+
+This is the drawback of docker0
+
+
+
+
+
+
+
+We can use --link option for linking two containers.
+--link option is outdated.
+
+At enterprise level  We will create our own network.
+using Custom networks, we can ping the containers using container name.
+
+Lets remove all the containers
+# docker rm  -f  $(docker ps -aq)
+
+To create a new network
+
+# docker network create sunil
+
+
+we get network id
+
+01aad5c1a0d886281e8ad1436acf16acdfad175068464655735c3694d98cc5af
+
+
+
+To get the network information
+
+# docker inspect  sunil
+
+Observe gateway  series
+
+  "Gateway": "172.18.0.1"
+
+
+++++++++++++++++
+
+Now, we can create containers in "sunil" network
+
+# docker run -d -P --name app --net sunil  nginx
+
+(  --net is used to assign network to the container )
+
+# docker ps  ( we can see nginx container is running )
+
+To know the IP address of the container
+# docker inspect  app
+
+ "IPAddress": "172.18.0.2",
+
+We get custom network IP series
+
+Lets create one more container in Sunil network
+
+# docker run -d -P --name mybox --net sunil busybox
+
+# docker ps ( we can see two containers )
+
+I want to check, if containers can be communicated using name
+
+Lets enter into busybox
+# docker exec -it d242f337c68c  sh
+
+#  ip a    ( its a linux command, which will show list of network adapters)
+We can see the ip
+ inet 172.18.0.3
+
+++++++++++++
+
+Now from busybox, I want to ping nginx container
+/ # ping 172.18.0.2
+
+Yes!! It pings
+
+I want to ping with name
+
+/# ping app
+
+Yes!! It pings!!!!!!!!!!!!!
+
+Similary we can also ping with container ID
+
+We avoid links, we used Custom networks  
+
+/#  exit
+
+To see the list of container in a network
+#  docker inspect  sunil
+
+
+Lets create a redis container again
+-------------------------------------
+# docker run -d -P redis
+
+As we have not mentiond network information, by default it takes docker0 network.
+
+# docker ps ( to see the list of container )
+
+redis belongs to docker0 network
+app  belongs to sunil network.
+
+do you think app container will communicate to redis?
+They cannot communicate.
+
+# docker ps
+
+Take note of redis container id
+
+19b981c848c6
+
+
+# docker network connect sunil 19b981c848c6
+
+The above command  is used to connect redis container to sunil network
+
+Now, inspect the redis container
+
+# docker inspect 19b981c848c6
+
+
+Now, its part of two networks.
+
+
+Now, redis can be pinged from app container or busybox container
+
+# docker exec -it 4f110bebbfb3  sh
+
+/ # ping 19b981c848c6
+
+It works!!!
+
+/ # exit
+
+
+To see the list of networks
+
+# docker network ls
+
+
++++++++++++++++++++++++++++++++
+
+
+
+Types of networks in Docker
+------------------------------
+
+Actually, they are not networks. They are network drivers.
+
+Docker follows CNM ( Container Network Model ), By using which container capabilities come to docker by defualt.
+
+There are Following network drivers in-built
+-----------------------------------------
+1) Bridge
+2) Host
+3) None
+4) Overlay
+
+
+Last session, we have experienced two types of networks.
+1. Docker0
+2. sunil ( Custom network )
+
+By default docker0 is of type bridge network.
+
+
+
+
+In bridge networks, container on one machine can communicate to another container, in the same machine.
+By default type is bridge.
+
+# docker network ls
+
+We can see "sunil"  network is of type bridge.
+
+
+Bridge network is confined to one machine only.
+
+
+Host Network
+----------------------
+Assume, I am running a database.
+
+I want to use machine IP as the container IP
+It is possible by using Host network.
+
+We already have host network available.
+
+# docker network ls
+
+We can see one host network
+
+
+# docker run -d -P   --net host    nginx
+
+
+# docker container ps
+
+
+
+Observe: There is no port no
+Eventhough we have mentioned -P, is has not published port.
+We can access directly using IP without port, to connect to the container.
+
+Take the public IP of the Dockerhost and access using default port.
+
+13.233.156.196:80
+
+13.127.218.160:80
+
+We get the nginx page
+
+Ok. fine.
+
+But, can we create the same container again?
+No!
+
+# docker run -d -P --net host  nginx
+
+
+
+As, 80 port number is already published
+When we create another container,It will not be in running.
+
+
+# docker ps
+We can see only one container.
+
+# docker ps -a
+We can see the latest container is exited.
+
+To know, Why the container is exited?
+Take note of the container id, which is exited
+
+
+df259a678bc6
+
+# docker logs df259a678bc6
+
+
+
+We can see clearly  as " Address already in use"
+
+So, with host network, one type of image we can use only once.
+
+
+Null Network
+----------------
+Refers to no network.
+If we do  not want the container to get exposed to the world.
+
+# docker run -d -P --net none redis
+
+# docker ps
+Take note of container id
+75c18ef13fc8
+
+# docker inspect 4e793540f97e
+
+We do not see any IP for the container
+
+"IPAddress": ""
+
+When none network is used?
+When we use orchestration tools like Kubernetes or openshift.
+If you want orchestration tools to take of networking, in such case we do not want docker networking.
+In such case we use none network of docker.
+
++++++++++++++++++++++++++
+
+In realtime, we know, container will be running on multiple machines ( docker swarm ).
+When container present in one machine, want to communicate to container in another machine
+
+# docker info
+
+We can see - Swarm in inactive
+
+ Swarm: inactive
+
+I want to initialize swarm
+
+#  docker swarm init
+
+Now, lets see the list of networks
+
+# docker network ls
+
+Observer, a new network is created of type "overlay"
+Name of the network is ingress
+
+One machine container can communicate to another machine container using overlay network.
+
+Lets inspect ingress network.
+
+# docker inspect  ingress
+
+Observe the IP address, Lets take a note of it.
+
+ "IPv4Address": "10.0.0.2
+
+Now, when we create container using service concept,
+The container uses overlay network.
+Docker swarm uses overlay network.
+
+# docker service create --name s1 --replicas 5 -p 1234:80 nginx
+
+As we have one machine right now.
+All the container will be running in the same machine ( Manager )
+
+# docker ps
+
+I want to know the IP addres of the 1st container.
+Take note of the 1st container ID
+0ac84d7cdd37
+
+# docker inspect  0ac84d7cdd37
+
+
+
+Observer the IP address is  
+"IPAddress": "10.0.0.7"
+It has taken overlay network series.
+
+So, swarm uses existing overlay network for communication between containers on different machines.
+
++++++++++++++++++++++++++
+
+Can we create our own overlay network?
+Yes!!
+
+Lets create
+
+# docker network create ol1 --driver overlay
+
+# docker network ls  ( to see the list of networks )
+
+We can see ol1  network is created of type overlay
+
+# docker inspect ol1  (  To know the series it is taking )
+
+ "Subnet": 10.0.1.0
+
+It has taken 1.0 series
+
++++++++++++++++++++++++
+Lets delete the existing service
+
+# docker service rm  s1
+
+Lets remove all the existing containers
+
+# docker rm -f `docker ps -aq`
+
+Lets create service on ol1 network
+
+# docker service create --name mynginx --replicas 5 --network ol1 -p 1224:80   nginx
+
+# docker ps
+Take note of the 1st container id
+
+814d5db02f47
+
+
+# docker inspect 814d5db02f47
+
+
+
+
+We can see the network as ol1. And the Ip address series.
+
+ "ol1": {
+                    "IPAMConfig": {
+                        "IPv4Address": "10.0.1.7"
+
+We generally used bridge and overlay networks.
+
++++++++++++++++++++++++++++++++++++++
+
