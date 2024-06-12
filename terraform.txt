@@ -1,0 +1,101 @@
+Terraform
+----------
+
+Terraform is an opensource Infrastructure as a Code (IAC).. softwere form Harsi Corp Companey.
+this softwere written in "GO" programeing language.
+
+infrastructure as code is the process of manageing infraastructure in a file or files,
+ rather then manually configuring resources in a user interface (UI)..
+
+here resoureces are nothing but virtual machines, elastice ip,sercurity groups, network interfaces..
+
+Terraform code is written in the Harsi corp configuration language (HCL) in files with the extension .tf
+
+
+
+ 
+Infrastructure
+-------------
+resource to run applications...
+
+IAC
+---
+provisining infrasturcture using scripts insted of manually configuring machines..
+
+provisinging
+-------------
+createing,deleting, updateing...
+
+* Terraform is a s/w enables you to create, change, and delete infrastructure safely and efficiently.
+* Terraform supports all cloud providers.
+* terraform provides a consistenct cli workflow to manage hundred of cloud services.
+* the infrastructure terraform can manage components such as compute instances, storage, networking...etc
+* In the terraform, createing the infrastructure we use HCL (harshi corp configuration language)
+
+
+Tools for IAC
+-------------
+Terraform
+aws cloud formation
+azure resource manager
+Open stack
+vmwere
+IBM cloud
+
+diff b/w terraforn and aws cloud formation
+------------------------------------------
+      terraform                                 aws cloud formation
+
+developed by Hashi corp                         developed by AWS
+
+it will work for many cloud providers           it will support only aws 
+like AWS, Azure, GCP ....
+
+Terraform uses Hashi corp conf lang             utilizes either json or yaml..
+a lang built by hashi  corp companey..          cloud formation has a limit of 51000
+it is fully compatiable with Json...            bytes for the template by itself.....
+
+
+-------------------------------------------------------------------------------------------------
+Install terraform  (Terraform.io)....
+
+sudo yum install -y yum-utils shadow-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+
+-----------------------------------------------------------------------------------------------
+Pre-Req
+--------------
+
+Any cloud provider (AWS)
+User credentials (Access key and Secret key)
+Add the policies to IAM user if you are using aws as cloud provider (AWS full access, ec2 full access)............
+
+----------------------------------------------------------------------------------------------- 
+
+* there are 2 types of Terraformconf files.
+   1) Terraform format which ends with .tf (Human redable)
+   2) terraform Json format which ends with .tf.json (machine readable)
+* If you are having combination of these two extension files that is compleatly fine.still it works..
+
+
+* Terraform has plugin for each provider and we need to download it before going with any cloud with terraform..
+* create any file with.tf/.tf.json extension and press the provider information..
+* we create .tf files which is written in HCL
+* Terraform init 
+
+
+terraform main commands..
+------------------------
+
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+terraform destroy
+
+
+------------------------------------------------------------------------------------------------------------
+
+
