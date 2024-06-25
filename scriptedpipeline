@@ -1,0 +1,14 @@
+node{
+    def mavenHome = tool name: "maven"
+    stage('code'){
+        git 'https://github.com/nani0231/javaapp.git'
+    }
+    stage('build'){
+     sh  "${mavenHome}/bin/mvn package"
+    }
+    stage('deploytocontainer'){
+        sshagent(['newtomcat']) {
+     sh "scp -o StrictHostKeyChecking=no target/java-web-app-1.0.war ec2-user@3.111.35.131:/opt/apache-tomcat-9.0.89/webapps/"
+}
+    }
+}
