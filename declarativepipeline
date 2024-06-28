@@ -1,0 +1,32 @@
+declarative
+----------------
+
+pipeline{
+    
+
+ agent any
+ tools{
+     maven "maven"
+ }
+ 
+ stages{
+     
+    stage('checkout'){
+        steps{
+            git 'https://github.com/nani0231/maven-web-application.git'
+        }
+    }
+    stage('Build'){
+     steps{
+         sh "mvn clean package"
+     }   
+    }
+    stage('DeployAppIntoTomcat'){
+  steps{
+   sshagent(['5f2277b4-45f9-4e04-bd86-cc44207260c2']) {
+   sh "scp -o StrictHostKeyChecking=no target/java-web-app-1.0.war ec2-user@3.110.155.61:/opt/apache-tomcat-9.0.89/webapps/"    
+  }
+  }
+  }
+ }
+}
