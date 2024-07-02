@@ -1,0 +1,139 @@
+Service Object
+=====================
+
+This is used for network load balancing and port mapping
+It uses 3 ports
+1 target port:  Pod or container port
+2 port:   Service port
+3 hostPort:  Host machines port to make it accessable from external network
+
+Service objects are classified into 3 types
+1 clusterIP: This is the default type of service object used in
+  Kubernetes and it is used when we want the Pods in the cluster to
+  communicate with each other and not with extrnal networks
+
+2 nodePort: This is used if we want to access the pods from an extrnal
+  network and it also performs network load balancing ie even if a pod
+  is running on a specific salve we can access it from other slave in
+  the cluster
+
+3 LoadBalancer: This is similar to Nodeport and it is used for external 
+  connectivity of a Pod and also network load balancing and it also assigns
+  a public ip for all the slave combined together
+
+
+Use Case
+=================
+Create a service defintion file for port mapping an nginx pod
+
+vim pod-defintion1.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: nginx-pod
+ labels:
+  author: synergy
+  type: reverse-proxy
+spec:
+ containers:
+  - name: appserver
+    image: nginx
+=========================================================
+vim service1.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: nginx-service
+spec:
+ type: NodePort
+ ports:
+  - targetPort: 80
+    port: 80
+    nodePort: 30008
+ selector:
+  author: synergy
+  type: reverse-proxy
+
+Create pods from the above pod definition file
+kubectl create -f poddefinition1.yml
+Create the service from the above service definition file
+kubectl create -f service1.yml
+Now nginx can be accesed from any of the slave
+kubectl get nodes -o wide
+Take the external ip of any of the nodes:30008
+
+==================================================================================
+
+
+=============================================================================
+Create a service object of the type LoadBalancer for a tomcat pods
+vim servcie2.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: tomcat-service
+spec:
+ type: LoadBalancer
+ ports:
+  - targetPort: 80
+    port: 80
+    
+ selector:
+  author: synergy
+  type: appserver
+
+
+
+vim pod-definition2.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: tomcat-pod
+ labels:
+  type: appserver
+  author: synergy
+spec:
+ containers:
+  - name: tomcat
+    image: tomee
+    
+...
+
+================================================================================
+Create a service object of the type load balancer for postgres pod
+vim service3.yml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: postgres-service
+spec:
+ type: ClusterIp
+ ports:
+  - targetPort: 5432
+    port: 5432
+   
+ selector:
+  author: synergy
+  type: db
+
+vim pod-defintion6.yml
+apiVersion: v1
+kind: Pod
+metadata:
+ name: mysql-pod
+ labels:
+  type: db
+  author: synergy
+spec:
+ containers:
+  - name: mydb
+    image: mysql
+    env:
+     name: MYSQL_ROOT_PASSWORD
+     value: synergy
