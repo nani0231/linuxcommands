@@ -1,0 +1,64 @@
+provider "aws" {
+  region     = "ap-south-1"
+}
+
+resource "aws_instance" "terraform_instance" {
+  ami             = "ami-07ef4004db979fcd4"
+  instance_type   = "t2.micro"
+  key_name        = "second-key"
+  security_groups = ["${aws_security_group.main.name}"]
+  tags = {
+    Name = "win"
+  }
+}
+
+resource "aws_security_group" "main" {
+  name        = "main"
+  description = "all in one page"
+  ingress {
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+resource "aws_key_pair" "windows" {
+  key_name   = "second-key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
+}
+
+resource "aws_s3_bucket" "new_bucket" {
+  bucket = "mahesh6567bucket1"
+}
+
+resource "aws_vpc" "first-vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "vpc-one"
+  }
+}
+
+resource "aws_subnet" "main" {
+  vpc_id     = aws_vpc.first-vpc.id
+  cidr_block = "10.0.1.0/24"
+
+  tags = {
+    Name = "subnet-one"
+  }
+}
