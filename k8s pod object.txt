@@ -1,0 +1,204 @@
+To see the list of nodes in the Kubernetes cluster
+  kubectl get nodes
+
+2 To get info about the nodes along with ipaddress and docker version etc
+  kubectl get nodes -o wide
+
+3 To get detailed info about the nodes
+  kubectl describe nodes node_name
+
+==============================================================================
+Create nginx as a pod and name it webserver
+kubectl run --image nginx webserver
+
+To see the list of pods
+kubectl get pods
+
+To get  info about the pods along with ipaddress
+kubectl get pods -o wide
+
+To get detailed info about the pods
+kubeclt describe pods webserver
+
+================================================================================
+Create a mysql pod and also pass the necessary environment variables
+kubectl run --image mysql:5 mydb --env MYSQL_ROOT_PASSWORD=synergy
+
+Check if the pod is running
+kubectl get pods
+
+To delete the mysql pod
+kubectl delete pods db
+
+==============================================================================
+Kubernetes Definition file
+=================================
+Kubernetes performs container orchestration uisng certain definition
+file.These files are created using yml and they have 4 top level
+fields
+
+apiVersion:
+kind:
+metadata:
+spec:
+
+apiVersion: Every kubernetes object uses a specific Kubernetes code
+library that is called apiVersion.Only once this code library is imported
+we can start working on specific objects
+
+kind: This represents the type of Kubernetes object that we want to us
+      eg: Pod,Replicaset,Service etc
+
+metadata: Here we give a name to the Kubernetes object and also some
+          labels.These labels can be used later for performing group
+          activites
+
+spec: This is where we store info about the exact docker image,container name
+      environment varibales,port mapping etc
+
+
+Kind              apiVersion
+=================================
+Pod               v1
+Service           v1
+NameSpace         v1
+Secrets           v1
+ReplicationController v1
+PersistantVolume v1
+PersistantVolumeClaim v1
+HorrizontalPodAutoScaller v1
+ReplicaSet        apps/v1
+Deployment        apps/v1
+DaemoSet          apps/v1
+
+
+
+
+==============================================================================
+
+
+
+
+UseCase-1
+Create a pod definition file to start an nginx in a pod 
+name the pod as nginx-pod,name the container as webserver
+
+vim pod-defintion1.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: nginx-pod
+ labels:
+  author: synergy
+  type: reverse-proxy
+spec:
+ containers:
+  - name: webserver
+    image: nginx
+...
+
+To create a pod from the above file
+kubectl create -f pod-defintion1.yml
+
+To see the list of pods
+kubectl get pods
+
+To see the pods along with the ipaddress and name of the slave where it is running
+kubectl get pods -o wide
+
+To delete the pods created from the above file
+kubectl delete -f pod-definition1.yml
+
+
+=========================================================================
+Create a pod defintion file to start a postgres container
+Name of the container should be mydb,pass the necssary environment
+variables,this container should run in a pod called postgres-pod
+and give the labels as author=synergy and type=database
+
+
+vim pod-definition2.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: postgres-pod
+ labels:
+  author: synergy
+  type: database
+spec:
+ containers:
+  - name: mydb
+    image: postgres
+    env:
+     - name: POSTGRES_PASSWORD
+       value: synergy
+     - name: POSTGRES_USER
+       value: myuser
+     - name: POSTGRES_DB
+       value: mydb
+
+To create pods from the above defintion file
+kubectl create -f pod-defintion2.yml
+
+To delete the pods
+kubectl delete -f pod-definition2.yml
+
+
+
+========================================================================
+UseCase 3
+Create a pod defintion file to start a jenkins container in a pod
+called jenkins-pod,also perform port mapping to access the jenkins
+from a browser
+
+vim pod-definition3.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: jenkins-pod
+ labels:
+  author: synergy
+  type: ci-cd
+spec:
+ containers:
+  - name: myjenkins
+    image: jenkins
+    ports:
+     - containerPort: 8080
+       hostPort: 8080
+...
+
+To create pods from the above file
+kubectl create -f pod-defintion3.yml
+
+To see the list of pods along with nodes where they are running
+kubectl get nodes -o wide
+
+To get the external ip of the node
+kubectl get node -o wide
+
+To access then jenkins from browser
+external_ip_of_slavenode:8080
+
+=======================================================================
+Create a pod definition file to setup tomcat
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tomcat-pod
+  labels:
+    author: synergy
+    type: appserver
+spec:
+  containers:
+    - name: mytomcat
+      image: tomee
+      ports:
+        - containerPort: 8080
+          hostPort: 9090
