@@ -13,20 +13,20 @@ Tomcat Installation
 	sudo yum install -y apache-maven
        ---------------------------------------------------------------
 #    5  wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.89/bin/apache-tomcat-9.0.89.zip
-    6   wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.89/bin/apache-tomcat-9.0.89.zip
+    6   wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.91/bin/apache-tomcat-9.0.91.zip
     7  ls
-    8  unzip apache-tomcat-9.0.89.zip
+    8  unzip apache-tomcat-9.0.91
     9  cd /opt
    10  ls
-   11  cd apache-tomcat-9.0.89/
+   11  cd apache-tomcat-9.0.91
    12  ls
    13  cd bin/
    14  ls
    15  chmod u+x *.sh
    16  ls
    17  cd ..
- # 18  ln -s /opt/apache-tomcat-9.0.89/bin/startup.sh /usr/bin/startTomcat
- # 19  ln -s /opt/apache-tomcat-9.0.89/bin/shutdown.sh /usr/bin/stopTomcat
+ # 18  ln -s /opt/apache-tomcat-9.0.91/bin/startup.sh /usr/bin/startTomcat
+ # 19  ln -s /opt/apache-tomcat-9.0.91/bin/shutdown.sh /usr/bin/stopTomcat
    20  ls
    21  cd conf
    22  ls
