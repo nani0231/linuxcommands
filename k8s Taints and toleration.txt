@@ -1,0 +1,353 @@
+Taints and toleration
+========================
+Taints and Tolerations
+Node affinity, is a property of Pods that attracts them to a set of nodes (either as a preference or a hard requirement). 
+Taints are the opposite -- they allow a node to repel a set of pods.
+
+Tolerations are applied to pods, and allow (but do not require) the pods to schedule onto nodes with matching taints.
+
+Taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes. 
+One or more taints are applied to a node; this marks that the node should not accept any pods that do not tolerate the taints.
+
+To create a taint for a node
+kubectl taint nodes node1 node=synergy:NoSchedule
+
+To delete the tain
+kubectl taint nodes node1 node=synergy:NoSchedule-
+
+Deployment defintion file to use the above taint
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment
+  labels:
+    type: webserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      type: webserver
+  template:
+    metadata:
+      name: httpd-pod
+      labels:
+        type: webserver
+    spec:
+      containers:
+        - name: myhtppd
+          image: httpd
+      tolerations:
+        - key: slave2
+          operator: Equal
+          value: synergy2
+          effect: NoSchedule
+...
+==================================================================================
+DaemonSets:These are used to run a single pod on each and every slave,The no salve count will
+become the desired count of the Daemonsets
+====================
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ghost-daemon
+  labels:
+    type: cms
+spec:
+  selector:
+    matchLabels:
+      type: cms
+  template:
+    metadata:
+      name: ghost-pod
+      labels:
+        type: cms
+    spec:
+      containers:
+        - name: ghost
+          image: ghost
+...
+=========================================================================
+Secrets
+============
+This is used to send encrypted data to the definiton files
+Generally passwords for Databases can be encrypted using this
+
+Create a secret file to store the mysql password
+vim secret.yml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+ name: mysql-pass
+type: Opaque
+stringData:
+ password: synergy
+ username: sai
+...
+
+To deploy the secret
+kubectl create -f secret.yml
+
+Create a pod defintion file to start a mysql pod and pass the environment
+varible using the above secret
+vim pod-defitintion5.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: mysql-pod
+ labels:
+  author: synergy
+  type: db
+spec:
+ containers:
+  - name: mydb
+    image: mysql:5
+    env:
+     - name: MYSQL_ROOT_PASSWORD
+       valueFrom:
+        secretKeyRef:
+         name: mysql-pass
+         key: password
+...
+
+To create pods from above file
+kubect create -f pod-defintion5.yml
+==================================================================
+Create a secret definition file for postgres secret
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+stringData:
+  password:synergy
+  username: myuser
+  dbname: mydb
+
+Create postgres deployment and use the above secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: db
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      name: postgres-pod
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: mydb
+          image: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: dbname
+
+================================================================================
+Volumes
+==================
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: redis-pod
+ labels:
+  author: synergy
+spec:
+ containers:
+  - name: redis
+    image: redis
+    volumeMounts:
+     - name: redis-volume
+       mountPath: /data/redis
+ volumes:
+  - name: redis-volume
+    emptyDir: {}
+
+Create a pod from the above file
+kubectl create -f volumes.yml
+
+To check if the volume is mounted
+kubectl exec -it redis-pod -- bash
+
+Go to the redis folder and create some files
+cd redis
+cat > file
+Store some data in this file
+
+To kill the redis pod install procps
+apt-get update
+apt-get install -y procps
+
+Identify the process id of redis
+ps aux
+kill 1
+
+Check if the redis-pod is recreated
+kubectl get pods
+We will see the restart count changes for this pod
+
+If we go into this pods interactive terminal
+kubectl exec -it redis-pod -- bash
+
+We will see the data but not the s/w's (procps) we installed
+cd redis
+ls
+
+ps  This will not work
+======================================================================
+
+Persistent volume is the storage that is used by Kubernetes for Volumes
+Persistent volume claim is the amount of storage from the persistent volume that
+will be allocatted to a Pod.It is alos a PVC that is attached to a Pod
+
+vim pv.yml
+--
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 4Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+...
+
+To create the persistant volume
+kubect apply -f pv.yml
+
+To see the list of pv
+kubectl get pv
+
+Create a persistantvolumeclaim definition file
+
+vim pvc.yml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+  labels:
+    author: synergy
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+To create the persistant volume claim
+kubectl apply -f pvc.yml
+
+To see the list of pvc
+kubectl get pvc
+
+Create a pod defintion file to use the above pvc
+vim pod-volumes.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    author: synergy
+    type: proxy
+spec:
+  containers:
+    - name: mynginx
+      image: nginx
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: my-volume
+  volumes:
+    - name: my-volume
+      persistentVolumeClaim:
+        claimName: my-pvc
+
+
+To create pods from the above file
+kubectl apply -f pod-volumes.yml
+
+=============================================================================
+Statefulsets
+======================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - name: tcp
+      protocol: TCP
+      port: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  serviceName: mysql
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: task-pv-claim
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          ports:
+            - name: tpc
+              protocol: TCP
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: synergy
+
+          volumeMounts:
+            - name: task-pv-storage
+              mountPath: /var/lib/mysql
