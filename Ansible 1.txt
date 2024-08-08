@@ -1,0 +1,211 @@
+
+Configuration Management
+-----------------------------------
+This is process of configuring remote servers from one point of control.
+
+Advantages
+----------------------
+1) Provisioning of servers
+	The applications that should be installed on server can be done very quickly from a single centralized location.
+
+2) Idempotent 
+	Configuration management tools are used to bring the server to a particular state, called as desired state. 
+        If a server already in the desired state, configuration management tools will not reconfigure that server.
+
+
+
+
+
+COnfigutaion management tools -  Ansible, chef, puppet, salt  etc
+
+
+++++++++++++++++++++++++++++++++++++++++++
+
+Ansible  -- It is a open source configuration management tool, created using Python.
+Main machine in which anisble is installed, is called as controller.
+Remote severs that Ansible configures, are called as managed nodes.
+
+Ansible uses agent less policy for configures remote servers ie Ansible is installed only on 1 machine, 
+and we do not require any client side software to be installed on the remote serers.
+
+Ansible performs configuration management through password less ssh.
+
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++
+Create 3 Servers ( Ubuntu 20 )
+1 is controller
+2  are managed nodes
+
+Name the instances as
+Controller
+Server1
+Server2
+
+
+Ubuntu machines default come with Python3
+
++++++++++++++++++++++++++
+Establish password less ssh connection
+
+$ sudo passwd ubuntu
+( lets give the password as ubuntu only )
+
+$ sudo vim /etc/ssh/sshd_config
+
+change 
+PasswordAuthentication yes
+Save and QUIT
+
+$ sudo service ssh restart
+$ exit
+
+++++++++++++++++++
+
+Repeat the same steps in server2 and server3
+
+++++++++++++++++
+Now,  Connect to controller
+Now , We need to generate ssh connections
+
+$ ssh-keygen
+
+Now copy the key to managed nodes
+
+$ ssh-copy-id ubuntu@172.31.16.221   ( private Ip of server1 )
+
+$ ssh-copy-id ubuntu@172.31.16.180  ( private Ip of server2 )
+
+
+
++++++++++++++++++++++
+Installing ansible now
+
+Connect to controller.
+
+$ sudo apt-get install software-properties-common
+( software-properties-common    ,  is a base package which is required to install ansible )
+
+$ sudo apt-add-repository ppa:ansible/ansible
+
+$ sudo apt-get update
+
+$ sudo apt-get install -y ansible
+
++++++++++++++++++
+To check ther version of ansible
+
+$ ansible --version
+
+++++++++++++
+
+Write the ip address of nodes in the inventory file
+
+$ cd /etc/ansible
+$ ls
+
+$ sudo vim hosts
+
+insert the private ip addresss of 2 servers
+save and quit
+
+$ ls -la     ( to see the list in the current machine )
+$ ansible all  -a  'ls  -la'    ( you will get the list of the files in all managed nodes )
+
+
+----------------------------------
+
+2 Ways  ansible can 
+1) adhoc commands
+2) playbooks
+
+adhoc commands
+----------------
+
+Important modules in ansible
+
+1) command - This module is used for executing basic linux commands on managed nodes.
+
+2) shell -  This module is used to execute commands which involved redirection and piping and to execute shell scripts on managed nodes.
+
+
+3) ping  --  This module is used to check if the remote server is pingable or not.
+
+
+4) user --  This module is used for user management like create user, setting password, assign home directory  etc
+
+
+
+5) copy  --  This module is used to copy the files and folders from controller to managed nodes
+
+
+6) fetch  --  This module is used to copy files and folder from managed nodes to controller
+
+7) file  --  This module is used for creating or deleting files and folders on managed nodes.
+
+8) stat  --  Used to capture detailed information about files and folders present in managed nodes.
+
+9) debug --  Used to display output of any module
+
+10) apt   --  Used for performing package management on managed nodes ie installing softwares / upgrading repositories  etc . It works on ubuntu, debain flavours of linux. 
+
+11) yum  --  similar to apt module. It works on Red hat linux, centos etc
+
+
+12) git  --  used to perform git version controlling on managed nodes
+
+13) replace -- This is used to replace specific text in configuration file with some other text.
+
+
+14) service  -- used for starting / stoping / restarting services on managed nodes.
+
+15) include  --  Used for calling child play books  from parent play book
+
+16) uri    -- useful in checking  if remote url is reachable or not.
+
+17) docker_container  --  used to execute docker  commands related to container management on managed nodes
+
+18) docker_image  --  used to execute commands related to docker images on managed nodes.
+
+19) docker_login  --  used to login to docker hub from managed nodes.
+
+20) setup   --  used to capturing system information related to the managed nodes.
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+$ ansible   all   -i   /etc/ansible/hosts    -m command   -a  'free'
+
+
+
+
+
+$ ansible all -i /etc/ansible/hosts -m command -a 'touch file1'
+
+
+
+
+To check the file which is created
+$ ssh 172.31.3.105    ( this command will go that machine  )
+$  ls  
+$  exit    ( to come back to controller )
+
+++++++++++++++++
+To install docker in all managed nodes
+
+
+$ ansible all -i /etc/ansible/hosts -m shell -a 'curl  -fsSL  https://get.docker.com  -o get-docker.sh'   
+
+$ ansible all -i /etc/ansible/hosts -m shell -a 'sh get-docker.sh'   
+
++++++++++++++
+
+To check docker is installed or not
+
+$ ssh 172.31.3.105
+$ docker  --version
+$  exit  (  to come back to controller )
+
++++++++++++++++++

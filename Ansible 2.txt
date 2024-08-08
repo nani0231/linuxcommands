@@ -1,0 +1,387 @@
+2 Ways  ansible can 
+1) adhoc commands
+2) playbooks
+
+adhoc commands
+-----------------------------------------------------------------------------------------------
+
+Important modules in ansible
+1) command - This module is used for executing basic linux commands on managed nodes.
+2) shell -  This module is used to execute commands which involved redirection and piping and to execute shell scripts on managed nodes.
+3) ping  --  This module is used to check if the remote server is pingable or not.
+4) user --  This module is used for user management like create user, setting password, assign home directory  etc
+
+5) copy  --  This module is used to copy the files and folders from controller to managed nodes
+
+
+6) fetch  --  This module is used to copy files and folder from managed nodes to controller
+
+7) file  --  This module is used for creating or deleting files and folders on managed nodes.
+
+8) stat  --  Used to capture detailed information about files and folders present in managed nodes.
+
+9) debug --  Used to display output of any module
+
+10) apt   --  Used for performing package management on managed nodes ie installing softwares / upgrading repositories  etc . It works on ubuntu, debain flavours of linux. 
+
+11) yum  --  similar to apt module. It works on Red hat linux, centos etc
+
+
+12) git  --  used to perform git version controlling on managed nodes
+
+13) replace -- This is used to replace specific text in configuration file with some other text.
+
+
+14) service  -- used for starting / stoping / restarting services on managed nodes.
+
+15) include  --  Used for calling child play books  from parent play book
+
+16) uri    -- useful in checking  if remote url is reachable or not.
+
+17) docker_container  --  used to execute docker  commands related to container management on managed nodes
+
+18) docker_image  --  used to execute commands related to docker images on managed nodes.
+
+19) docker_login  --  used to login to docker hub from managed nodes.
+
+20) setup   --  used to capturing system information related to the managed nodes.
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+$ ansible all -i /etc/ansible/hosts -m command -a 'free'
+
+
+
+
+$ ansible all -i /etc/ansible/hosts -m command -a 'touch file1'
+
+
+
+
+
+
+To check the file which is created
+$ ssh 172.31.10.243    ( this command will go that machine  )
+$  ls  
+$  exit    ( to come back to controller )
+
+++++++++++++++++
+To install docker in all managed nodes
+
+
+
+$ ansible all -i /etc/ansible/hosts -m shell -a 'curl  -fsSL  https://get.docker.com  -o get-docker.sh'   
+
+$ ansible all -i /etc/ansible/hosts -m shell -a 'sh get-docker.sh'   
+
++++++++++++++
+
+
+
+
+
+To check docker is installed or not
+
+$ ssh 172.31.10.243
+$ docker  --version
+$  exit  (  to come back to controller )
+
++++++++++++++++++
+Notes:
+
+Ansible performs remote configurations in 2 ways
+1) using adhoc commands
+2) using play books
+
+Syntx of adhoc commands
+$ ansible  all/group_name/ipaddress -i  path_of_inventory_file -m modulename  -a  'arguments'
+
++++++++++++++++++
+Ansible command module to check the  memory info on all managed nodes
+
+$ ansible all -i /etc/ansible/hosts -m command -a 'free'
+
+
+
+++++++++++++++++++
+To open the default inventory file
+
+$ sudo vim  /etc/ansible/hosts
+
+( Observation:  3 ip address are available )
+
++++++++++++++++++
+Now, I copy the first two IP address (  in a  new notepad file )
+quit the inventory file
+
++++++++++++++
+
+Create my own inventory file
+$ vim  myinventory
+go to insert mode
+
+paste one ip address
+save and quit
+
++++++++++++
+To check the inventory file
+
+$ cat myinventory
+
++++++++++++
+$ ansible all -i myinventory -m command -a 'free'
+
+
+
+Observation:  free command works on only one machines
+
++++++++++++++
+If you do not mention the inventory file, it takes default inventory file.
+ex:
+
+
+$ ansible all  -m command -a 'free'
+
++++++++++++++++++++++++++++++++
+
+
+
+command module is the default module in ansible
+
+$ ansible all  -a 'free'
+
+++++++++++++++++++++++
+
+
+
+
+
+
+
+Note:
+The defualt inventory file is /etc/ansible/hosts  and when using this inventory file, we need not use -i option.
+ex:
+$ ansible all  -m command -a 'free'
+
+The default module  is module. When using command module we need not use -m option
+ex:
+$ ansible all  -a 'free'
+
+Shell Module
+----------------
+ansible command to execute ls  -la  and store the output into  file2 on all the managed nodes.
+
+$ ansible  all  -m  shell -a 'ls -la > file2'
+
+To check the file which is created
+
+$ ssh 172.31.10.243
+$ ls
+$ exit   ( to come back to controller )
+
++++++++++++++++
+command to install docker  on all managed nodes
+
+$ ansible all  -m shell -a 'curl  -fsSL  https://get.docker.com  -o get-docker.sh'   
+
+$ ansible all -m shell -a 'sh get-docker.sh'   
+
+++++++++++++++++++++++++
+User Module:
+( From controller )
+To create new user
+
+$ sudo  useradd sai
+$ vim /etc/passwd     (  User will be created in this file )
+To set the password
+$ sudo passwd  sai      ( sai is the username)
+
+
+All users information is present in  passwd file.
+
+$ cd /etc
+ls
+
+
+$ vim  /etc/passwd
+
+
+
++++++++++++
+Now, i want to create user in all managed nodes
+
+$ ansible  all -m user  -a  'name=kiran  password=welcome'
+( we ger error : permission denied )
+
+
+
+$ ansible  all -m user  -a  'name=kiran  password=welcome'  -b  ( become , for higher privileges on managed nodes )
+
+
+
+
+
+
+++++++++++++++
+To check if user is create or not
+
+$  ssh 172.31.7.62
+$ vim  /etc/passwd
+$  exit
+
++++++++++++++++++++++
+Command to create user and set home directory, user id,  default working shell etc
+Another example
+
+$ ansible all -m user  -a 'name=Ravi password=freefree uid=1234 comment="A regular user"  home=/home/ubuntu/Ravi shell=/bin/bash' -b
+
+
+
+
+
+
+
+To check for the new user
+$  ssh 172.31.4.54
+$ vim  /etc/passwd
+
+++++++++++
+
+Install git in all managed nodes
+--------------------------------
+$ ansible all -m apt  -a 'name=git  state=present' -b
+
+
+
+
+Observation: 
+We get "changed": false
+( That means git is already installed on it. The command has no effect in the nodes)
+
+Now , run the below command
+
+$ ansible all -m apt  -a 'name=git  state=absent' -b
+( absent  means - uninstall )
+
+output, we get in yellow color 
+( scroll up )  we get  "changed":true
+( The command is effected the instance )
+
+
+Now if we run the below command  ( with present option )
+$ ansible all -m apt  -a 'name=git  state=present' -b
+
+we get  "changed":true	
+
+Notes:
+apt module  -- This is used for package management.
+1)  ansible all -m apt  -a 'name=git  state=present' -b
+
+
+state=present  is for installation
+state=latest    for upgradation
+state=absent    for uninstallation
+
+++++++++++++++++++++++++++++++++++++++++++
+I wan to update apt-repositoty and install tomcat9
+
+ansible all -m  apt -a 'name=tomcat9 state=present  update_cache=yes' -b
+
+
+
+
+The above command will install apt repository and install tomcat9
+To install apt-repository on managed nodes  update_cache=yes  is used 
+
++++++++++++++++++++++++++
+
+File module
+--------------
+This is used to create files and folder on managed nodes
+
+
+
+  ansible all  -m  file -a  'name=/tmp/file5  state=touch' 
+
+
+
+To check the file which is create
+$ ssh 172.31.3.106
+$ cd  /tmp
+$ ls
+$ exit
+
+TO create a directory
+   ansible all  -m  file -a  'name=/tmp/dir1  state=directory' 
+
+To check the directory
+$  ssh 172.31.39.33
+$ cd  /tmp
+$ ls
+$ exit
+
+To delete the  file
+ansible all  -m  file -a  'name=/tmp/file5  state=absent' 
+
+++++++++++++++++++++++++
+Notes:
+Command to create a file on all managed nodes
+
+ansible all  -m  file -a  'name=/tmp/file1  state=touch' 
+
+state=touch   is to create files
+state=directory  is to create directory
+state=absent  is for deleting file/directory
+
+++++++++++++++++++++
+Now,
+To know the current user
+$ whoami
+$  ansible all  -m  file -a  'name=file1  state=touch' 
+
+
+
+Now go to managed nodes and check the permission of the file
+$ ssh 172.31.3.106
+$ ls -l file1
+
+Observe the permissions  are   rw-rw-r--
+
+Now, I want to change the permissions from controller
+$ exit   ( will come back to controller )
+
+$  ansible all  -m  file -a  'name=/tmp/file6  state=touch owner=root group=root  mode=700'  -b
+
+
+
+The above command will execute  only if Anu user and Ravi  group is available in all nodes.
+
+Notes:
+File module can be used to change the ownership, group ownership and permissions on the file.
+
+
+Copy Module
+---------------
+This is used for copying the files from controller into managed nodes.
+
+We know in the file  /etc/passwd  we have all the information about users
+
+Now I want to copy the file  into all nodes
+
+$ ansible all -m  copy  -a 'src=/etc/passwd     dest=/tmp'
+
+
+
+
+To check the file which is copies
+
+$ ssh 172.31.3.106
+$ cd /tmp
+$ ls
+$ exit
+
+++++++++++++++
+
+

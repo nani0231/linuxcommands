@@ -1,0 +1,74 @@
+Git Modules
+------------
+This is used to perform git version controlling on the managed nodes.
+
+ansible all -m  git  -a  'repo=https://github.com/sunildevops77/repo1.git  dest=/tmp/mygit'  -b
+
+The above command will download the files in all managed nodes.
+
+Go to managed node and check
+$  ssh 172.31.35.79
+$ cd /tmp
+$  ls
+$ cd mygit
+$  ls
+$ exit
+
+
+Notes:
+Ansible command to clone remote git repository into all managed nodes
+ansible all -m  git  -a  'repo=https://github.com/sunildevops77/rep1.git  dest=/tmp/mygit' -b
+
+++++++++++++++++++
+Service Module
+---------------------
+This is used for starting/ stoping / restarting the services.
+
+Ansible command to restart tomcat8  on all managed nodes
+$  ansible all   -m service    -a 'name=tomcat8  state=restarted'  -b
+
+state=restarted is for restarting a service
+state=stopped  is for stopping a running service
+state=started  is for starting a stopped service
+
+
+Replace module
+-----------------
+Go to managed node
+$ ssh 172.31.36.52
+$ cd /etc/tomcat9/
+$ ls
+$ sudo  vim  server.xml
+ 
+Look for connector  port  , to see the port number in which it is running. ( line 74)
+
+Now, we want to change the port number on all managed nodes, in this scenario
+we use replace module.
+
+Quit the server.xml file
+
+$ exit   ( to come back to controller )
+$  ansible all  -m replace  -a 'regexp=8080 replace=9090 path=/etc/tomcat9/server.xml'  -b
+
+Lets check tomcat is respoding on 9090 port in managed node
+
+Get public DNS from aws
+ec2-13-251-114-207.ap-southeast-1.compute.amazonaws.com
+ec2-13-234-48-168.ap-south-1.compute.amazonaws.com
+
+Open Browser
+URL ---  ec2-13-251-114-207.ap-southeast-1.compute.amazonaws.com:9090
+
+We will not get the page, becuase we need to restart the service 
+
+$  ansible all   -m service    -a 'name=tomcat9  state=restarted'  -b
+
+Now, try the above URL  ---  it Works!!
+
+replace module
+--------------
+This is used for replacing a specific string with other string.
+Ex:
+Ansible command to change the port number of tomcat from 8080 to 9090
+$ ansible all  -m replace  -a 'regexp=8080 replace=9090 path=/etc/tomcat8/server.xml'  -b
+ 
