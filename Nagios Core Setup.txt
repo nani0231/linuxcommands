@@ -83,7 +83,7 @@ sudo systemctl restart apache2
 ...........................................
 
 Create a user and set the password when prompted.
-sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users admin
+sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 
 ...................................................................
 
@@ -128,7 +128,7 @@ Verify the Nagios Core configuration.
 
 .....................................................
 
-$ sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 
 ......................................
 
